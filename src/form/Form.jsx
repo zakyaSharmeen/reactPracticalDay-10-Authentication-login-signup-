@@ -1,18 +1,19 @@
 import React, { useState, useEffect } from "react";
 
 export default function Form() {
-  // Track whether user is logged in
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
-  // Toggle between Login and Signup
   const [isLogin, setIsLogin] = useState(true);
 
-  // Store form data
-  const [form, setForm] = useState({ email: "", password: "" });
+  const [form, setForm] = useState({
+    name: "",
+    lastname: "",
+    email: "",
+    password: "",
+  });
 
   const [error, setError] = useState("");
 
-  // Check login state on refresh
   useEffect(() => {
     const auth = localStorage.getItem("auth");
     if (auth === "true") {
@@ -28,9 +29,9 @@ export default function Form() {
     e.preventDefault();
     setError("");
 
-    const { email, password } = form;
+    const { name, lastname, email, password } = form;
 
-    if (!email || !password) {
+    if (!email || !password || (!isLogin && (!name || !lastname))) {
       setError("All fields are required");
       return;
     }
@@ -51,12 +52,20 @@ export default function Form() {
       }
     } else {
       // SIGNUP
-      localStorage.setItem("user", JSON.stringify({ email, password }));
+      localStorage.setItem(
+        "user",
+        JSON.stringify({ name, lastname, email, password }),
+      );
       setIsLogin(true);
       setError("Account created successfully. Please login.");
     }
 
-    setForm({ email: "", password: "" });
+    setForm({
+      name: "",
+      lastname: "",
+      email: "",
+      password: "",
+    });
   };
 
   const handleLogout = () => {
@@ -66,15 +75,19 @@ export default function Form() {
 
   // ---------------- DASHBOARD ----------------
   if (isAuthenticated) {
+    const user = JSON.parse(localStorage.getItem("user"));
+
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-100">
         <div className="bg-white p-8 rounded-2xl shadow-xl text-center space-y-4">
-          <h1 className="text-2xl font-bold">Dashboard</h1>
+          <h1 className="text-2xl font-bold">
+            Welcome {user?.name} {user?.lastname} 👋
+          </h1>
           <p className="text-gray-600">You are logged in ✅</p>
+
           <button
             onClick={handleLogout}
-            className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition"
-          >
+            className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition">
             Logout
           </button>
         </div>
@@ -91,6 +104,28 @@ export default function Form() {
         </h2>
 
         <form onSubmit={handleSubmit} className="space-y-4">
+          {!isLogin && (
+            <>
+              <input
+                type="text"
+                name="name"
+                placeholder="First Name"
+                value={form.name}
+                onChange={handleChange}
+                className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+
+              <input
+                type="text"
+                name="lastname"
+                placeholder="Last Name"
+                value={form.lastname}
+                onChange={handleChange}
+                className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </>
+          )}
+
           <input
             type="email"
             name="email"
@@ -113,8 +148,7 @@ export default function Form() {
 
           <button
             type="submit"
-            className="w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 transition"
-          >
+            className="w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 transition">
             {isLogin ? "Login" : "Sign Up"}
           </button>
         </form>
@@ -126,8 +160,7 @@ export default function Form() {
               setIsLogin(!isLogin);
               setError("");
             }}
-            className="text-blue-500 hover:underline"
-          >
+            className="text-blue-500 hover:underline">
             {isLogin ? "Sign Up" : "Login"}
           </button>
         </p>

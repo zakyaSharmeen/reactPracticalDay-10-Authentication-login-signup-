@@ -5,9 +5,9 @@ import Explain from "./form/Explain";
 function App() {
   return (
     <div>
-      {/* <Form />
-       */}
-      <Explain />
+      <Form />
+
+      {/* <Explain /> */}
     </div>
   );
 }

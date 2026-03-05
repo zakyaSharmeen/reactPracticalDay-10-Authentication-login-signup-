@@ -1,117 +1,151 @@
 import React, { useState, useEffect } from "react";
 
-// Signup → Data saved in localStorage →
-// Login → Data compared →
-// If matched → User authenticated →
-// Auth state stored → Dashboard shown →
-// Logout clears auth.
-
-export default function Explain() {
-  // ---------------- AUTH STATE ----------------
-  // Stores whether user is logged in or not
+export default function Form() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  // Tracks if the user is logged in or not
 
-  // Toggle between Login and Signup mode
   const [isLogin, setIsLogin] = useState(true);
+  // Toggles between Login and Signup form
 
-  // Stores form input values
   const [form, setForm] = useState({
+    name: "",
+    lastname: "",
     email: "",
     password: "",
   });
+  // Stores form input values
 
-  // Stores error message
   const [error, setError] = useState("");
+  // Stores error messages
 
-  // ---------------- CHECK AUTH ON PAGE LOAD ----------------
-  // Runs once when component loads
-  // Checks if user was already logged in (stored in localStorage)
   useEffect(() => {
     const auth = localStorage.getItem("auth");
+    // Checks if login info exists in localStorage
+
     if (auth === "true") {
-      setIsAuthenticated(true); // restore login session
+      setIsAuthenticated(true);
+      // If user already logged in, show dashboard
     }
   }, []);
 
-  // ---------------- HANDLE INPUT CHANGE ----------------
-  // Updates form state when user types
   const handleChange = (e) => {
-    const { name, value } = e.target;
-
-    // Spread operator keeps old values and updates changed field
-    setForm({ ...form, [name]: value });
+    setForm({ ...form, [e.target.name]: e.target.value });
+    // Updates form state dynamically based on input name
   };
 
-  // ---------------- HANDLE SUBMIT ----------------
   const handleSubmit = (e) => {
-    e.preventDefault(); // prevent page reload
-    setError(""); // reset previous errors
+    e.preventDefault();
+    // Prevents page refresh on form submit
 
-    const { email, password } = form;
+    setError("");
+    // Clears previous error
 
-    // Basic validation
-    if (!email || !password) {
+    const { name, lastname, email, password } = form;
+    // Destructuring form values
+
+    if (!email || !password || (!isLogin && (!name || !lastname))) {
       setError("All fields are required");
       return;
+      // Validation check
     }
 
     if (isLogin) {
-      // ---------------- LOGIN LOGIC ----------------
+      // LOGIN LOGIC
 
-      // Get stored user from localStorage
       const storedUser = JSON.parse(localStorage.getItem("user"));
+      // Fetch saved user data from localStorage
 
-      // Check if user exists AND credentials match
       if (
         storedUser &&
         storedUser.email === email &&
         storedUser.password === password
       ) {
-        localStorage.setItem("auth", "true"); // store login status
-        setIsAuthenticated(true); // allow access
+        localStorage.setItem("auth", "true");
+        // Store login state
+
+        setIsAuthenticated(true);
+        // Show dashboard
       } else {
         setError("Invalid email or password");
+        // If credentials don't match
       }
     } else {
-      // ---------------- SIGNUP LOGIC ----------------
+      // SIGNUP LOGIC
 
-      // Save new user into localStorage
-      localStorage.setItem("user", JSON.stringify({ email, password }));
+      localStorage.setItem(
+        "user",
+        JSON.stringify({ name, lastname, email, password }),
+      );
+      // Saves user data to localStorage
 
-      // Switch to login mode after signup
       setIsLogin(true);
+      // After signup switch to login page
 
       setError("Account created successfully. Please login.");
     }
 
-    // Clear form fields
-    setForm({ email: "", password: "" });
+    setForm({
+      name: "",
+      lastname: "",
+      email: "",
+      password: "",
+    });
+    // Clears form fields
   };
 
-  // ---------------- LOGOUT FUNCTION ----------------
   const handleLogout = () => {
-    localStorage.removeItem("auth"); // remove login session
-    setIsAuthenticated(false); // redirect to login
+    localStorage.removeItem("auth");
+    // Removes login state
+
+    setIsAuthenticated(false);
+    // Redirects user back to login
   };
 
-  // ---------------- DASHBOARD (PROTECTED UI) ----------------
-  // If authenticated, show dashboard
   if (isAuthenticated) {
+    const user = JSON.parse(localStorage.getItem("user"));
+    // Get stored user info
+
     return (
       <div>
-        <h1>Dashboard</h1>
-        <p>You are logged in</p>
+        <h1>
+          Welcome {user?.name} {user?.lastname}
+        </h1>
+        {/* Shows logged in user's name */}
+
         <button onClick={handleLogout}>Logout</button>
+        {/* Logout button */}
       </div>
     );
   }
 
-  // ---------------- AUTH FORM ----------------
   return (
     <div>
       <h2>{isLogin ? "Login" : "Sign Up"}</h2>
+      {/* Shows form title based on mode */}
 
       <form onSubmit={handleSubmit}>
+        {!isLogin && (
+          <>
+            <input
+              type="text"
+              name="name"
+              placeholder="First Name"
+              value={form.name}
+              onChange={handleChange}
+            />
+            {/* First name field only shown during signup */}
+
+            <input
+              type="text"
+              name="lastname"
+              placeholder="Last Name"
+              value={form.lastname}
+              onChange={handleChange}
+            />
+            {/* Last name field only shown during signup */}
+          </>
+        )}
+
         <input
           type="email"
           name="email"
@@ -119,6 +153,7 @@ export default function Explain() {
           value={form.email}
           onChange={handleChange}
         />
+        {/* Email input */}
 
         <input
           type="password"
@@ -127,20 +162,27 @@ export default function Explain() {
           value={form.password}
           onChange={handleChange}
         />
+        {/* Password input */}
 
         {error && <p>{error}</p>}
+        {/* Displays error message */}
 
         <button type="submit">{isLogin ? "Login" : "Sign Up"}</button>
+        {/* Button changes based on form type */}
       </form>
 
-      {/* Toggle between login and signup */}
-      <button
-        onClick={() => {
-          setIsLogin(!isLogin); // switch mode
-          setError(""); // clear errors
-        }}>
-        {isLogin ? "Create Account" : "Already have account? Login"}
-      </button>
+      <p>
+        {isLogin ? "Don't have an account?" : "Already have an account?"}
+
+        <button
+          onClick={() => {
+            setIsLogin(!isLogin);
+            setError("");
+          }}>
+          {isLogin ? "Sign Up" : "Login"}
+        </button>
+        {/* Toggle between login and signup */}
+      </p>
     </div>
   );
 }
